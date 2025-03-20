@@ -1,37 +1,15 @@
+from picamera2 import Picamera2
 import cv2
-import numpy as np
-from flask import Flask, render_template, Response
+from flask import Flask, Response, render_template
 
 app = Flask(__name__)
-
-def get_camera():
-    # Try different camera configurations
-    try:
-        return cv2.VideoCapture("libcamerasrc ! video/x-raw ! videoconvert ! appsink", cv2.CAP_GSTREAMER)
-    except:
-        pass
-    
-    try:
-        return cv2.VideoCapture(0)
-    except:
-        pass
-    
-    for i in range(1, 26):
-        try:
-            camera = cv2.VideoCapture(i)
-            if camera.isOpened():
-                print(f"Camera {i} is opened")
-                return camera
-        except:
-            pass
-    raise RuntimeError("Could not access any camera")
+picam2 = Picamera2()
+picam2.configure(picam2.create_video_configuration(main={"size": (640, 480)}))
+picam2.start()
 
 def generate_frames():
-    camera = get_camera()
     while True:
-        success, frame = camera.read()
-        if not success:
-            break
+        frame = picam2.capture_array()
         ret, buffer = cv2.imencode('.jpg', frame)
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')

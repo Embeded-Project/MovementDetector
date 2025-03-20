@@ -1,9 +1,17 @@
 <html>
-  <head>
-    <title>Pi Camera Stream</title>
-  </head>
-  <body>
-    <h1>Pi Camera Stream</h1>
-    <img src="{{ url_for('video_feed') }}" width="640" height="480">
-  </body>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+        img { 
+            display: block;
+            margin-right: auto;
+        }
+        h1 {
+            text-align: center;
+        }
+        </style>
+        </head>
+    <body>
+    <img id="bg" src="{{ url_for('video_feed') }}" style="width:88%;">
+    </body>
 </html>
