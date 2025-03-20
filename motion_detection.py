@@ -19,13 +19,23 @@ def get_distance():
     time.sleep(0.00001)
     GPIO.output(TRIG, False)
 
+    # Timeout to avoid infinite loop
+    timeout = time.time() + 0.1
+    
     # Wait for the echo signal to start
     while GPIO.input(ECHO) == 0:
-        pulse_start = time.time()
+        if time.time() > timeout:
+            return 999  # Return large value if no echo is received
+    
+    pulse_start = time.time()
 
     # Wait for the echo signal to stop
+    timeout = time.time() + 0.1
     while GPIO.input(ECHO) == 1:
-        pulse_end = time.time()
+        if time.time() > timeout:
+            return 999  # Return large value if echo never stops
+    
+    pulse_end = time.time()
 
     # Calculate the distance
     pulse_duration = pulse_end - pulse_start
