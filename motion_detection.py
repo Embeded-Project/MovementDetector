@@ -12,6 +12,7 @@ GPIO.setup(ECHO, GPIO.IN)
 
 # Detection threshold in cm
 THRESHOLD_DISTANCE = 50
+AVERAGE_COUNT = 5  # Number of readings to average
 
 def get_distance():
     # Send a short pulse to trigger the sensor
@@ -19,24 +20,20 @@ def get_distance():
     time.sleep(0.00001)
     GPIO.output(TRIG, False)
 
-    # Timeout to avoid infinite loop
-    timeout = time.time() + 0.1
-    
     # Wait for the echo signal to start
+    timeout_start = time.time()
     while GPIO.input(ECHO) == 0:
-        if time.time() > timeout:
-            print("No echo received yet!")
+        if time.time() - timeout_start > 0.1:  # Timeout if no echo after 100ms
             return 999  # Return large value if no echo is received
-    
+
     pulse_start = time.time()
 
     # Wait for the echo signal to stop
-    timeout = time.time() + 0.1
+    timeout_start = time.time()
     while GPIO.input(ECHO) == 1:
-        if time.time() > timeout:
-            print("Echo timeout!")
+        if time.time() - timeout_start > 0.1:  # Timeout if no echo after 100ms
             return 999  # Return large value if echo never stops
-    
+
     pulse_end = time.time()
 
     # Calculate the distance
@@ -45,11 +42,19 @@ def get_distance():
 
     return round(distance, 2)
 
+def get_average_distance():
+    distances = []
+    for _ in range(AVERAGE_COUNT):
+        distance = get_distance()
+        distances.append(distance)
+        time.sleep(0.1)  # Small delay between readings
+    return round(sum(distances) / len(distances), 2)
+
 try:
     print("Waiting for movement...")
     while True:
-        distance = get_distance()
-        print(f"Distance: {distance} cm")  # Debugging print statement
+        distance = get_average_distance()
+        print(f"Average Distance: {distance} cm")  # Displaying the average distance
         if distance < THRESHOLD_DISTANCE:
             print("🚨 Someone is here! 🚨")
             time.sleep(1)  # Wait to avoid spamming
