@@ -25,6 +25,7 @@ def get_distance():
     # Wait for the echo signal to start
     while GPIO.input(ECHO) == 0:
         if time.time() > timeout:
+            print("No echo received yet!")
             return 999  # Return large value if no echo is received
     
     pulse_start = time.time()
@@ -33,6 +34,7 @@ def get_distance():
     timeout = time.time() + 0.1
     while GPIO.input(ECHO) == 1:
         if time.time() > timeout:
+            print("Echo timeout!")
             return 999  # Return large value if echo never stops
     
     pulse_end = time.time()
@@ -47,11 +49,10 @@ try:
     print("Waiting for movement...")
     while True:
         distance = get_distance()
+        print(f"Distance: {distance} cm")  # Debugging print statement
         if distance < THRESHOLD_DISTANCE:
             print("🚨 Someone is here! 🚨")
             time.sleep(1)  # Wait to avoid spamming
-        else:
-            print(f"Distance: {distance} cm")
         time.sleep(0.1)
 
 except KeyboardInterrupt:
