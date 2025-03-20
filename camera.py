@@ -20,6 +20,7 @@ def get_camera():
         try:
             camera = cv2.VideoCapture(i)
             if camera.isOpened():
+                print(f"Camera {i} is opened")
                 return camera
         except:
             pass
