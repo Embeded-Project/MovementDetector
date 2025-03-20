@@ -21,7 +21,7 @@ def video_stream():
 def camera():
     return render_template('camera.html')
 
-@app.route('/video_feed')
+@app.route('/')
 def video_feed():
     return Response(video_stream(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
