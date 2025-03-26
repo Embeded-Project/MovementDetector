@@ -1,17 +1,275 @@
-<html>
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-        img { 
-            display: block;
-            margin-right: auto;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Camera System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
         }
-        h1 {
-            text-align: center;
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
         }
-        </style>
-        </head>
-    <body>
-    <img id="bg" src="{{ url_for('video_feed') }}" style="width:88%;">
-    </body>
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        .camera-container {
+            flex: 3;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .camera-feed {
+            flex: 1;
+            background-color: black;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .camera-feed img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .controls {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .status-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .status-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: white;
+        }
+        
+        .armed {
+            background-color: var(--danger-color);
+        }
+        
+        .disarmed {
+            background-color: var(--success-color);
+        }
+        
+        .status-item {
+            margin-bottom: 10px;
+        }
+        
+        .status-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 3px;
+        }
+        
+        .status-value {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .arm-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+        
+        .arm-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .arm-button.armed {
+            background-color: var(--danger-color);
+        }
+        
+        .alert-banner {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--danger-color);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1000;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Camera Feed -->
+        <div class="camera-container">
+            <h2 style="margin-bottom: 15px;">Live Camera Feed</h2>
+            <div class="camera-feed">
+                <img src="{{ url_for('video_feed') }}" alt="Live Camera Feed">
+            </div>
+        </div>
+        
+        <!-- Controls Panel -->
+        <div class="controls">
+            <div class="status-card">
+                <div class="status-header">
+                    <div class="status-title">System Status</div>
+                    <div id="arm-status" class="status-badge disarmed">Disarmed</div>
+                </div>
+                
+                <div class="status-item">
+                    <div class="status-label">Motion Detection</div>
+                    <div id="motion-status" class="status-value">Inactive</div>
+                </div>
+                
+                <div class="status-item">
+                    <div class="status-label">Last Motion</div>
+                    <div id="last-motion" class="status-value">Never</div>
+                </div>
+                
+                <div class="status-item">
+                    <div class="status-label">Camera Status</div>
+                    <div id="camera-status" class="status-value">Connected</div>
+                </div>
+            </div>
+            
+            <button id="arm-button" class="arm-button">Arm System</button>
+        </div>
+    </div>
+    
+    <!-- Alert Banner -->
+    <div id="alert-banner" class="alert-banner">
+        <strong>MOTION DETECTED!</strong> <span id="alert-time"></span>
+    </div>
+    
+    <script>
+        // DOM Elements
+        const armButton = document.getElementById('arm-button');
+        const armStatus = document.getElementById('arm-status');
+        const motionStatus = document.getElementById('motion-status');
+        const lastMotion = document.getElementById('last-motion');
+        const alertBanner = document.getElementById('alert-banner');
+        const alertTime = document.getElementById('alert-time');
+        
+        // Toggle arm/disarm
+        armButton.addEventListener('click', () => {
+            fetch('/toggle_arm', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.armed) {
+                        armButton.textContent = 'Disarm System';
+                        armButton.classList.add('armed');
+                        armStatus.textContent = 'Armed';
+                        armStatus.classList.remove('disarmed');
+                        armStatus.classList.add('armed');
+                    } else {
+                        armButton.textContent = 'Arm System';
+                        armButton.classList.remove('armed');
+                        armStatus.textContent = 'Disarmed';
+                        armStatus.classList.remove('armed');
+                        armStatus.classList.add('disarmed');
+                    }
+                });
+        });
+        
+        // Check system status periodically
+        function updateStatus() {
+            fetch('/motion_status')
+                .then(response => response.json())
+                .then(data => {
+                    // Update motion status
+                    if (data.system_armed) {
+                        motionStatus.textContent = data.motion_detected ? 'Active' : 'Ready';
+                        motionStatus.style.color = data.motion_detected ? 'var(--danger-color)' : 'var(--success-color)';
+                    } else {
+                        motionStatus.textContent = 'Disabled';
+                        motionStatus.style.color = '#7f8c8d';
+                    }
+                    
+                    // Update last motion time
+                    if (data.last_motion_time) {
+                        lastMotion.textContent = data.last_motion_time;
+                    }
+                    
+                    // Show/hide alert banner
+                    if (data.notification_active && data.system_armed) {
+                        alertBanner.style.display = 'block';
+                        alertTime.textContent = data.last_motion_time;
+                    } else {
+                        alertBanner.style.display = 'none';
+                    }
+                });
+        }
+        
+        // Update status every second
+        setInterval(updateStatus, 1000);
+        updateStatus(); // Initial update
+    </script>
+</body>
 </html>
