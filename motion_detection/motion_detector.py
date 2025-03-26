@@ -5,7 +5,7 @@ from threading import Thread
 import time
 
 class MotionDetector:
-    def __init__(self, min_motion_area=500, threshold=25):
+    def __init__(self, min_motion_area=250, threshold=25):
         self.min_motion_area = min_motion_area
         self.threshold = threshold
         self.previous_frame = None
