@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Camera System</title>
+    <title>Security Camera System with Modal Features</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -12,27 +12,28 @@
             --success-color: #2ecc71;
             --dark-color: #2c3e50;
             --light-color: #ecf0f1;
+            --highlight-color: #f39c12;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Roboto', sans-serif;
         }
-        
+
         body {
             background-color: #f5f7fa;
             color: var(--dark-color);
         }
-        
+
         .container {
             display: flex;
             min-height: 100vh;
             padding: 20px;
             gap: 20px;
         }
-        
+
         .camera-container {
             flex: 3;
             background-color: white;
@@ -42,7 +43,7 @@
             display: flex;
             flex-direction: column;
         }
-        
+
         .camera-feed {
             flex: 1;
             background-color: black;
@@ -50,39 +51,39 @@
             overflow: hidden;
             position: relative;
         }
-        
+
         .camera-feed img {
             width: 100%;
             height: 100%;
             object-fit: contain;
         }
-        
+
         .controls {
             flex: 1;
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
-        
+
         .status-card {
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             padding: 20px;
         }
-        
+
         .status-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
-        
+
         .status-title {
             font-size: 1.2rem;
             font-weight: 500;
         }
-        
+
         .status-badge {
             padding: 5px 10px;
             border-radius: 20px;
@@ -90,30 +91,30 @@
             font-weight: 500;
             color: white;
         }
-        
+
         .armed {
             background-color: var(--danger-color);
         }
-        
+
         .disarmed {
             background-color: var(--success-color);
         }
-        
+
         .status-item {
             margin-bottom: 10px;
         }
-        
+
         .status-label {
             font-size: 0.9rem;
             color: #7f8c8d;
             margin-bottom: 3px;
         }
-        
+
         .status-value {
             font-size: 1rem;
             font-weight: 500;
         }
-        
+
         .arm-button {
             background-color: var(--primary-color);
             color: white;
@@ -128,16 +129,16 @@
             letter-spacing: 1px;
             width: 100%;
         }
-        
+
         .arm-button:hover {
             opacity: 0.9;
             transform: translateY(-2px);
         }
-        
+
         .arm-button.armed {
             background-color: var(--danger-color);
         }
-        
+
         .alert-banner {
             position: fixed;
             top: 20px;
@@ -151,17 +152,98 @@
             z-index: 1000;
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
-        
+
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
             }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .profile-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .profile-section h2 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .profile-section .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .input-group input {
+            padding: 12px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .profile-button {
+            background-color: var(--highlight-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .profile-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
         }
     </style>
 </head>
@@ -200,14 +282,44 @@
             </div>
             
             <button id="arm-button" class="arm-button">Arm System</button>
+
+            <!-- Button to Open Profile Modal -->
+            <button id="open-modal-btn" class="arm-button">Open Profile</button>
         </div>
     </div>
-    
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <span id="close-modal-btn" class="close-modal">&times;</span>
+            <div class="profile-section">
+                <h2>Profile Information</h2>
+                
+                <div class="input-group">
+                    <label for="full-name">Full Name</label>
+                    <input type="text" id="full-name" placeholder="Enter your full name" value="John Doe">
+                </div>
+                
+                <div class="input-group">
+                    <label for="phone-number">Phone Number</label>
+                    <input type="text" id="phone-number" placeholder="Enter your phone number" value="555-1234">
+                </div>
+                
+                <div class="input-group">
+                    <label for="contact-method">Preferred Contact Method</label>
+                    <input type="text" id="contact-method" placeholder="Preferred contact method" value="Text">
+                </div>
+
+                <button class="profile-button">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Alert Banner -->
     <div id="alert-banner" class="alert-banner">
         <strong>MOTION DETECTED!</strong> <span id="alert-time"></span>
     </div>
-    
+
     <script>
         // DOM Elements
         const armButton = document.getElementById('arm-button');
@@ -216,7 +328,10 @@
         const lastMotion = document.getElementById('last-motion');
         const alertBanner = document.getElementById('alert-banner');
         const alertTime = document.getElementById('alert-time');
-        
+        const openModalBtn = document.getElementById('open-modal-btn');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const profileModal = document.getElementById('profile-modal');
+
         // Toggle arm/disarm
         armButton.addEventListener('click', () => {
             fetch('/toggle_arm', { method: 'POST' })
@@ -237,39 +352,33 @@
                     }
                 });
         });
-        
-        // Check system status periodically
-        function updateStatus() {
-            fetch('/motion_status')
-                .then(response => response.json())
-                .then(data => {
-                    // Update motion status
-                    if (data.system_armed) {
-                        motionStatus.textContent = data.motion_detected ? 'Active' : 'Ready';
-                        motionStatus.style.color = data.motion_detected ? 'var(--danger-color)' : 'var(--success-color)';
-                    } else {
-                        motionStatus.textContent = 'Disabled';
-                        motionStatus.style.color = '#7f8c8d';
-                    }
-                    
-                    // Update last motion time
-                    if (data.last_motion_time) {
-                        lastMotion.textContent = data.last_motion_time;
-                    }
-                    
-                    // Show/hide alert banner
-                    if (data.notification_active && data.system_armed) {
-                        alertBanner.style.display = 'block';
-                        alertTime.textContent = data.last_motion_time;
-                    } else {
-                        alertBanner.style.display = 'none';
-                    }
-                });
+
+        // Simulate Motion Detection
+        function simulateMotion() {
+            motionStatus.textContent = 'Active';
+            lastMotion.textContent = new Date().toLocaleString();
+            alertBanner.style.display = 'block';
+            alertTime.textContent = new Date().toLocaleTimeString();
         }
-        
-        // Update status every second
-        setInterval(updateStatus, 1000);
-        updateStatus(); // Initial update
+
+        // Example of triggering motion detection every 15 seconds
+        setInterval(simulateMotion, 15000);
+
+        // Modal control
+        openModalBtn.addEventListener('click', () => {
+            profileModal.style.display = 'flex';
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            profileModal.style.display = 'none';
+        });
+
+        // Close modal if click outside of it
+        window.addEventListener('click', (e) => {
+            if (e.target === profileModal) {
+                profileModal.style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>
