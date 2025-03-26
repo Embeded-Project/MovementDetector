@@ -25,11 +25,12 @@ def video_stream():
         success, frame = video.read()
         if not success:
             break
-         # Detect motion
+        # Detect motion
         motion_detected, processed_frame = motion_detector.detect_motion(frame)
         
         # Add notification text if active
         if motion_detector.notification_active:
+
             cv2.putText(processed_frame, motion_detector.notification_message, 
                         (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
         ret, buffer = cv2.imencode('.jpg', frame)

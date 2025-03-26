@@ -70,7 +70,6 @@ class MotionDetector:
                 time_since = datetime.now() - self.last_motion_time
                 if time_since.total_seconds() < 5:  # Only notify if motion was recent
                     self.notification_active = True
-                    self.notification_message = f"Motion detected at {self.last_motion_time.strftime('%Y-%m-%d %H:%M:%S')}"
                 else:
                     self.notification_active = False
             else:
