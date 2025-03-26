@@ -1,27 +1,28 @@
-from picamera2 import Picamera2
 import cv2
-from flask import Flask, Response, render_template
+import numpy as np
+from flask import Flask , render_template, Response, stream_with_context,redirect
 
+video = cv2.VideoCapture(0)
 app = Flask(__name__)
-picam2 = Picamera2()
-picam2.configure(picam2.create_video_configuration(main={"size": (640, 480)}))
-picam2.start()
 
-def generate_frames():
+def video_stream():
     while True:
-        frame = picam2.capture_array()
-        ret, buffer = cv2.imencode('.jpg', frame)
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+        success, frame = video.read()
+        if not success:
+            break
+        else:
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            
 
 @app.route('/')
-def index():
-    return render_template('index.html')  # Create basic HTML template
+def camera():
+    return render_template('camera.html')
 
 @app.route('/video_feed')
 def video_feed():
-    return Response(generate_frames(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(video_stream(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+app.run(host='0.0.0.0', port=5000,debug=True)
