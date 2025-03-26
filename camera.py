@@ -3,7 +3,13 @@ from flask import Flask, render_template, Response
 import atexit
 
 app = Flask(__name__)
-video = cv2.VideoCapture(1)  # ← FIXED: Use correct device
+for i in range(10):  # Try up to 10 camera indices
+    video = cv2.VideoCapture(i)
+    if video.isOpened():
+        print(f"Camera found on index {i}")
+        break
+else:
+    raise RuntimeError("Could not open any camera")
 
 if not video.isOpened():
     raise RuntimeError("Could not open camera on /dev/video1")
